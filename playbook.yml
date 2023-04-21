@@ -1,0 +1,46 @@
+- hosts: localhost 
+  vars:
+    subtrees:
+      - source: https://0auth:ghp_2xxxxxxxxxxx@github.com/riadhhamdi/subtree1.git
+        squash: true 
+        ref: main
+        prefix: dir1
+      - source: https://0auth:ghp_2xxxxxxxxxxx@github.com/riadhhamdi/subtree1.git
+        squash: true 
+        ref: develop
+        prefix: dir2
+  tasks: 
+  - name: load mymodule 
+    newmod:
+      action: display
+      word: "Hello"
+  - name: Try the git subtree ansible module 
+    git_subtree: 
+      source: "https://0auth:@github.com/riadhhamdi/subtree1.git"
+      ref: develop
+      prefix: subtree1
+      squash: true
+      commit_message: "Add subtree from example/repo"
+      working_directory: /tmp/ansible_demo_use_collection
+      username: xxxxx
+      password: xxxxxx
+    register: subtree_output
+    environment:
+      GIT_TERMINAL_PROMPT: 1
+  - name: Trying multiple subtrees 
+    git_subtree: 
+      source: "{{item.source}}"
+      ref: "{{item.ref}}"
+      prefix: "{{item.prefix}}"
+      squash: true
+      commit_message: "Add subtree from example/repo"
+      working_directory: /tmp/ansible_demo_use_collection
+      username: xxxxxxxx
+      password: xxxxxxx
+    register: subtree_output
+    environment:
+      GIT_TERMINAL_PROMPT: 1
+    loop: "{{subtrees}}"
+  - name: debug
+    debug:
+      var: subtree_output

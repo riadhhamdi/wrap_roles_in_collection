@@ -1,13 +1,11 @@
 - hosts: localhost 
-  vars:
-    collection_repo_dir: /tmp/demo.collection
   vars_files:
     - ./vars/roles_repos.yml
   tasks: 
   - name: Cloning Collection main repo 
     ansible.builtin.git:
-      repo: git@github.com:riadhhamdi/demo.collection.git
-      dest: "{{collection_repo_dir}}"
+      repo: "{{main_collection.repo}}"
+      dest: "{{main_collection.clone_dir}}"
     environment:
        GIT_TERMINAL_PROMPT: 0 # reports "terminal prompts disabled" on missing password
   

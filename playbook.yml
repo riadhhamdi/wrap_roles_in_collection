@@ -1,46 +1,52 @@
 - hosts: localhost 
   vars:
+    git_token: 
     subtrees:
-      - source: https://0auth:ghp_2xxxxxxxxxxx@github.com/riadhhamdi/subtree1.git
+      - source: git@github.com:riadhhamdi/demo_role1.git  ## Change with your own role (https or ssh) 
         squash: true 
         ref: main
-        prefix: dir1
-      - source: https://0auth:ghp_2xxxxxxxxxxx@github.com/riadhhamdi/subtree1.git
+        prefix: roles/role1
+      - source: git@github.com:riadhhamdi/demo_role2.git  ## Change with your own role (https or ssh) 
         squash: true 
-        ref: develop
-        prefix: dir2
+        ref: main
+        prefix: roles/role2
   tasks: 
-  - name: load mymodule 
-    newmod:
-      action: display
-      word: "Hello"
-  - name: Try the git subtree ansible module 
-    git_subtree: 
-      source: "https://0auth:@github.com/riadhhamdi/subtree1.git"
-      ref: develop
-      prefix: subtree1
-      squash: true
-      commit_message: "Add subtree from example/repo"
-      working_directory: /tmp/ansible_demo_use_collection
-      username: xxxxx
-      password: xxxxxx
-    register: subtree_output
+  - name: Avoid hanging when http(s) password is missing
+    ansible.builtin.git:
+      repo: git@github.com:riadhhamdi/demo.collection.git
+      dest: /tmp
     environment:
-      GIT_TERMINAL_PROMPT: 1
-  - name: Trying multiple subtrees 
+       GIT_TERMINAL_PROMPT: 0 # reports "terminal prompts disabled" on missing password
+  
+  - name: Adding each role to the collection
     git_subtree: 
       source: "{{item.source}}"
       ref: "{{item.ref}}"
       prefix: "{{item.prefix}}"
       squash: true
-      commit_message: "Add subtree from example/repo"
-      working_directory: /tmp/ansible_demo_use_collection
-      username: xxxxxxxx
-      password: xxxxxxx
+      commit_message: "Add subtree {{item.prefix}} to the collection"
+      working_directory: /tmp/demo.collection
     register: subtree_output
     environment:
-      GIT_TERMINAL_PROMPT: 1
+      GIT_TERMINAL_PROMPT: 0
     loop: "{{subtrees}}"
   - name: debug
     debug:
       var: subtree_output
+  - name: Add collection content to git
+    ansible.builtin.shell: |
+      git config --global user.name "automated collection packaging"
+      git config --global user.email "rhamdi@redhat.com"
+      git add -A && git commit -m "Automated Commit by Ansible" && git push
+    args:
+      chdir: /tmp/demo.collection
+    register: output
+    failed_when: >
+      output.msg != "" and
+      ("error" in output.msg or
+      "conflict" in output.msg or
+      "Errno" in output.msg or
+      "fatal" in output.msg or
+      (output.stdout != "" and
+      "nothing to commit, working tree clean" not in output.stdout) or
+      (output.stderr != ""))

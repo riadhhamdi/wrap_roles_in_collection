@@ -1,5 +1,6 @@
 - hosts: localhost 
   vars:
+    collection_repo_dir: /tmp/demo.collection
     git_token: 
     subtrees:
       - source: git@github.com:riadhhamdi/demo_role1.git  ## Change with your own role (https or ssh) 
@@ -11,10 +12,10 @@
         ref: main
         prefix: roles/role2
   tasks: 
-  - name: Avoid hanging when http(s) password is missing
+  - name: Cloning Collection main repo 
     ansible.builtin.git:
       repo: git@github.com:riadhhamdi/demo.collection.git
-      dest: /tmp
+      dest: "{{collection_repo_dir}}"
     environment:
        GIT_TERMINAL_PROMPT: 0 # reports "terminal prompts disabled" on missing password
   
@@ -25,7 +26,7 @@
       prefix: "{{item.prefix}}"
       squash: true
       commit_message: "Add subtree {{item.prefix}} to the collection"
-      working_directory: /tmp/demo.collection
+      working_directory: "{{collection_repo_dir}}"
     register: subtree_output
     environment:
       GIT_TERMINAL_PROMPT: 0
@@ -37,16 +38,7 @@
     ansible.builtin.shell: |
       git config --global user.name "automated collection packaging"
       git config --global user.email "rhamdi@redhat.com"
-      git add -A && git commit -m "Automated Commit by Ansible" && git push
+      git push
     args:
-      chdir: /tmp/demo.collection
+      chdir: "{{collection_repo_dir}}"
     register: output
-    failed_when: >
-      output.msg != "" and
-      ("error" in output.msg or
-      "conflict" in output.msg or
-      "Errno" in output.msg or
-      "fatal" in output.msg or
-      (output.stdout != "" and
-      "nothing to commit, working tree clean" not in output.stdout) or
-      (output.stderr != ""))

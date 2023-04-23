@@ -7,3 +7,6 @@ subtrees:
     squash: true 
     ref: main
     prefix: roles/role2
+main_collection:
+  repo: git@github.com:riadhhamdi/demo.collection.git
+  clone_dir: /tmp/demo_collection

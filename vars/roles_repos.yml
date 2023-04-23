@@ -1,1 +1,9 @@
-
+subtrees:
+  - source: git@github.com:riadhhamdi/demo_role1.git  ## Change with your own role (https or ssh) 
+    squash: true 
+    ref: main
+    prefix: roles/role1
+  - source: git@github.com:riadhhamdi/demo_role2.git  ## Change with your own role (https or ssh) 
+    squash: true 
+    ref: main
+    prefix: roles/role2

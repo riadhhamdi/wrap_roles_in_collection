@@ -18,7 +18,7 @@
       prefix: "{{item.prefix}}"
       squash: true
       commit_message: "Add subtree {{item.prefix}} to the collection"
-      working_directory: "{{collection_repo_dir}}"
+      working_directory: "{{main_collection.repo}}"
     register: subtree_output
     environment:
       GIT_TERMINAL_PROMPT: 0
@@ -32,5 +32,5 @@
       git config --global user.email "rhamdi@redhat.com"
       git push
     args:
-      chdir: "{{collection_repo_dir}}"
+      chdir: "{{main_collection.clone_dir}}"
     register: output

@@ -2,12 +2,12 @@
 
 DOCUMENTATION = '''
 module: git_subtree
-short_description: Ansible module to execute the git subtree command.
+short_description: Ansible module that mimic git subtree add/pull in an idempotent way.
 description:
     - This module mimics the functionality of the git subtree command by adding a subtree from a source repository to a subdirectory in the main repository.
 version_added: "2.9"
 author:
-    - Your Name (@your_username)
+    - Riadh Hamdi (@riadhhamdi) (rhamdi@redhat.com) 
 options:
     source:
         description:
@@ -16,10 +16,6 @@ options:
     ref:
         description:
             - The repository ref while adding or pulling subtree. Example a branch (main,develop..) of a specific tag
-        required: true
-    subdirectory:
-        description:
-            - The subdirectory of the source repository to include in the main repository.
         required: true
     prefix:
         description:
@@ -38,30 +34,75 @@ options:
         description:
             - The working directory in which to execute the git command.
         default: null
-    username:
-        description:
-            - The username to connect to the git repository.
-        default: null
-    password:
-        description:
-            - The git token to connect to the git repository.
-        default: null
-    ssh_key:
-        description:
-            - The path to the private ssh key if using ssh connection to the git repo.
-        default: null
 '''
 
 EXAMPLES = '''
-- name: Add a subtree to the main repository
+- name: Add/Pull a subtree to the main repository using http
   git_subtree:
     source: https://github.com/example/repo.git
     ref: main
-    subdirectory: path/to/subdirectory
-    prefix: subtree/prefix
+    prefix: mydirectory
     squash: true
     commit_message: "Add subtree from example/repo"
     working_directory: /path/to/main/repository
+
+- name: Add/Pull a subtree to the main repository using ssh
+  git_subtree:
+    source: git@github.com/example/repo.git
+    ref: main
+    prefix: mydirectory/somesubdirectory
+    squash: true
+    commit_message: "Add subtree from example/repo using ssd"
+    working_directory: /path/to/main/repository
+
+
+- name: Add/Pull a subtree to the main repository using http and disabling git password prompt 
+  git_subtree:
+    source: https://github.com/example/repo.git
+    ref: main
+    prefix: mydirectory/somesubdirectory
+    squash: true
+    commit_message: "Add subtree from example/repo using ssd"
+    working_directory: /path/to/main/repository
+  environment:
+    GIT_TERMINAL_PROMPT: 0
+
+- name: Add/Pull multiple subtrees to the main repository using http and disabling git password prompt 
+  git_subtree:
+    source: "{{item.source}}"
+    ref: "{{item.ref}}"
+    prefix: "{{item.prefix}}"
+    squash: true
+    commit_message: "Adding role {{item.prefix}} to the collection"
+    working_directory: /path/to/main/collection_repository
+  environment:
+    GIT_TERMINAL_PROMPT: 0
+  vars:
+    roles_repositories: 
+      - source: https://github.com/example/role1.git
+        squash: true
+        ref: main
+        prefix: roles/role1
+      - source: https://github.com/example/role2.git 
+        squash: true
+        ref: develop
+        prefix: roles/role2
+      - source: https://github.com/example/role3.git
+        squash: true
+        ref: 1.0.4
+        prefix: roles/role3
+
+- name: Add/Pull a subtree with authentication (read only token) 
+  git_subtree:
+    source: https://0auth:ghp_2234xxxxxxxxxx5@github.com/example/repo.git
+    ref: main
+    prefix: mydirectory/somesubdirectory
+    squash: true
+    commit_message: "Add subtree from example/repo using ssd"
+    working_directory: /path/to/main/repository
+  environment:
+    GIT_TERMINAL_PROMPT: 0
+
 '''
 
 from ansible.module_utils.basic import AnsibleModule
@@ -72,7 +113,6 @@ def main():
         argument_spec=dict(
             source=dict(required=True),
             ref=dict(required=True),
-            subdirectory=dict(required=False),
             prefix=dict(required=True),
             squash=dict(type='bool', default=False),
             commit_message=dict(default=''),
@@ -86,14 +126,10 @@ def main():
 
     source = module.params['source']
     ref = module.params['ref']
-    subdirectory = module.params['subdirectory']
     prefix = module.params['prefix']
     squash = module.params['squash']
     commit_message = module.params['commit_message']
     working_directory = module.params['working_directory']
-    username = module.params['username']
-    password = module.params['password']
-    ssh_key = module.params['ssh_key']
 
     check_command = ['git', 'subtree', 'split', '--prefix', prefix]
     try:

@@ -26,4 +26,9 @@ main_collection:
   repo: git@github.com:riadhhamdi/demo_collection.git
   clone_dir: /tmp/demo_collection
 ```
+
 - Run the playbook to add each repo to the collection main directory
+
+```bash
+ansible-playbook playbook.yml -vv
+```

@@ -16,7 +16,7 @@
       prefix: "{{item.prefix}}"
       squash: true
       commit_message: "Add subtree {{item.prefix}} to the collection"
-      working_directory: "{{main_collection.repo}}"
+      working_directory: "{{main_collection.clone_dir}}"
     register: subtree_output
     environment:
       GIT_TERMINAL_PROMPT: 0

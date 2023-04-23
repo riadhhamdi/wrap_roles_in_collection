@@ -10,3 +10,20 @@ The following repo contains a set of ansible modules, playbooks and configuratio
 
 # Example
 
+- Configure Your roles repos in the file `vars/roles_repos.yml`
+
+```yaml
+subtrees:
+  - source: git@github.com:riadhhamdi/demo_role1.git  ## Change with your own role (https or ssh) 
+    squash: true 
+    ref: main
+    prefix: roles/role1
+  - source: git@github.com:riadhhamdi/demo_role2.git  ## Change with your own role (https or ssh) 
+    squash: true 
+    ref: main
+    prefix: roles/role2
+main_collection:
+  repo: git@github.com:riadhhamdi/demo_collection.git
+  clone_dir: /tmp/demo_collection
+```
+- Run the playbook to add each repo to the collection main directory

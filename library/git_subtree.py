@@ -107,6 +107,7 @@ EXAMPLES = '''
 
 from ansible.module_utils.basic import AnsibleModule
 import subprocess
+import os 
 
 def main():
     module = AnsibleModule(
@@ -131,52 +132,48 @@ def main():
     commit_message = module.params['commit_message']
     working_directory = module.params['working_directory']
 
-    check_command = ['git', 'subtree', 'split', '--prefix', prefix]
-    try:
-        subprocess.check_output(check_command, stderr=subprocess.DEVNULL, cwd=working_directory, text=True)
-    except subprocess.CalledProcessError:
-        # the subtree does not exist yet, add it
+    if not os.path.exists(os.path.join(working_directory, prefix)):
         command = ['git', 'subtree', 'add', '--prefix', prefix, source, ref]
         if squash:
             command.append('--squash')
         if commit_message:
             command.extend(['-m', commit_message])
-
+    
         try:
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=working_directory, check=True, text=True)
         except subprocess.CalledProcessError as e:
             module.fail_json(msg=f"Error running command {e.cmd}: {e.stderr.strip()}", rc=e.returncode)
-
+    
         module.exit_json(
             changed=True,
             msg=result.stdout.strip(),
             rc=result.returncode
         )
-
-    # the subtree already exists, update it
-    command = ['git', 'subtree', 'pull', '--prefix', prefix, source, ref]
-    if squash:
-        command.append('--squash')
-    if commit_message:
-        command.extend(['-m', commit_message])
-
-    try:
-        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=working_directory, check=True, text=True)
-    except subprocess.CalledProcessError as e:
-        module.fail_json(msg=f"Error running command {e.cmd}: {e.stderr.strip()}", rc=e.returncode)
-    if 'is already at commit' in result.stderr:
-        module.exit_json(
-            changed=False,
-            msg=result.stdout.strip(),
-            rc=result.returncode
-        )
-    else:
-
-        module.exit_json(
-            changed=True,
-            msg=result.stdout.strip(),
-            rc=result.returncode
-        )
+    else:    
+        # the subtree already exists, update it
+        command = ['git', 'subtree', 'pull', '--prefix', prefix, source, ref]
+        if squash:
+            command.append('--squash')
+        if commit_message:
+            command.extend(['-m', commit_message])
+    
+        try:
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=working_directory, check=True, text=True)
+        except subprocess.CalledProcessError as e:
+            module.fail_json(msg=f"Error running command {e.cmd}: {e.stderr.strip()}", rc=e.returncode)
+        if 'is already at commit' in result.stderr:
+            module.exit_json(
+                changed=False,
+                msg=result.stdout.strip(),
+                rc=result.returncode
+            )
+        else:
+    
+            module.exit_json(
+                changed=True,
+                msg=result.stdout.strip(),
+                rc=result.returncode
+            )
 
 
 if __name__ == '__main__':

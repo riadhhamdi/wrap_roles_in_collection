@@ -37,8 +37,8 @@ ansible-playbook playbook.yml -vv
 
 # Variables
 
-`subtrees`: A list of dictionaries containing the roles repos. 
+- `subtrees`: A list of dictionaries containing the roles repos. 
 
-`Collection`: The target repository of your  collection . galaxy.yml and other collection files should be added manually.
+- `Collection`: The target repository of your  collection . galaxy.yml and other collection files should be added manually.
 
 

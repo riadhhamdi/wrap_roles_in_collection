@@ -2,11 +2,11 @@ subtrees:
   - source: git@github.com:riadhhamdi/demo_role1.git  ## Change with your own role (https or ssh) 
     squash: true 
     ref: main
-    prefix: roles/role5
+    prefix: roles/role11
   - source: git@github.com:riadhhamdi/demo_role2.git  ## Change with your own role (https or ssh) 
     squash: true 
     ref: main
-    prefix: roles/role4
+    prefix: roles/role12
 main_collection:
   repo: git@github.com:riadhhamdi/demo.collection.git
   clone_dir: /tmp/demo_collection_1

@@ -32,3 +32,6 @@
     args:
       chdir: "{{main_collection.clone_dir}}"
     register: output
+
+
+### End of the playbook 
